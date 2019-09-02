@@ -1,1 +1,5 @@
 data.db
+create_tables
+__pycache__/
+*.pyc
+.DS_Store
