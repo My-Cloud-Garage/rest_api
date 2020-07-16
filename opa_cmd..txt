@@ -1,0 +1,62 @@
+# start opa server with data and debug level: ./opa run --server ./mydata.json --log-level debug
+
+# UPLOAD POLICY (newpol.rego)
+curl -X PUT http://localhost:8181/v1/policies/newpol --data-binary @newpol.rego
+
+# UPLOAD DATA (mydata.json)
+curl -X PUT http://localhost:8181/v1/data/mydata --data-binary @mydata.json
+
+
+##################
+curl -X POST http://localhost:8181/v1/data/mydata/policy/allow --data-binary '{ "input": { "user": "alice", "access": "write" } }'
+###########################
+
+curl -X POST http://localhost:8181/v1/data/newpol/readyport --data-binary '{ "input": { "port": "p1"} }'
+--> true
+
+curl -X POST http://localhost:8181/v1/data/newpol/readyport --data-binary '{ "input": {"port": "p4"}}'
+--> false
+
+curl -X POST http://localhost:8181/v1/data/newpol/readyport2 --data-binary '{ "input": {"port": "p3"}}'
+--> true
+
+
+curl -X POST http://localhost:8181/v1/data/newpol/readyport2 --data-binary '{ "input": {"port": "p4"}}'
+--> false
+
+
+
+
+curl -X POST http://localhost:8181/v1/data/newpol/allow1
+--> false
+
+curl -X POST http://localhost:8181/v1/data/newpol/allow2
+--> true
+
+curl -X POST http://localhost:8181/v1/data/newpol/violation
+--> true
+
+
+
+# inspect all data
+curl -X GET http://localhost:8181/v1/data/
+
+# inspect servers data
+curl -X GET http://localhost:8181/v1/data/servers
+
+# inspect policies:
+curl -X GET http://localhost:8181/v1/policies
+
+NOTE: (FOR POLICIES)
+package newpol.now
+# access allow with curl -X POST http://localhost:8181/v1/data/newpol/now/allow
+
+# package newpol.policy
+# access allow with curl -X POST http://localhost:8181/v1/data/newpol/plicy/allow
+
+# package newpol
+# access allow with curl -X POST http://localhost:8181/v1/data/newpol/allow
+
+
+Add partial eval to query:  curl -X POST http://localhost:8181/v1/data/newpol/readyport2?partial --data-binary '{ "input": { "port": "p3"} }'
+Add metrics to query: curl -X POST http://localhost:8181/v1/data/newpol/readyport2?metrics --data-binary '{ "input": { "port": "p3"} }'
